@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Profile Scan">
+<meta name="theme-color" content="#14181f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Profile Scan</title>
+<style>
+:root{--bg:#14181f;--panel:#1d232d;--panel2:#262e3a;--line:#364152;--text:#eef1f5;--muted:#b3bccb;--accent:#e5322d;--accent2:#ff6b5e;--blue:#4fa3ff;--good:#5fd38a;--warn:#ffb648;--bad:#ff7a7a;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:17px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(var(--safe-t) + 8px) 16px 8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+header h1{font-size:20px;margin:0;font-weight:750}
+header h1 span{color:var(--accent2)}
+.steps{margin-left:auto;display:flex;gap:6px}
+.steps b{display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;font-size:14px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.steps b.on{background:var(--accent);color:#fff;border-color:var(--accent2)}
+main{padding:12px 14px calc(30px + var(--safe-b));max-width:780px;margin:0 auto}
+section{display:none} section.active{display:block}
+h2{font-size:20px;margin:14px 0 8px}
+h3{font-size:16px;margin:14px 0 6px;color:var(--accent2)}
+p{margin:6px 0 10px}
+.muted{color:var(--muted)} .small{font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+button,.btn{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-weight:650;border-radius:12px;padding:12px 16px;min-height:48px;cursor:pointer;text-align:center;text-decoration:none;display:inline-block}
+button.primary,.btn.primary{background:var(--accent);border-color:var(--accent2);color:#fff}
+button.big,.btn.big{width:100%;font-size:20px;min-height:60px}
+button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap} .row>*{flex:1 1 auto}
+label{display:block;font-size:14px;color:var(--muted);margin:8px 0 4px}
+input,select{width:100%;font:inherit;color:var(--text);background:#10141a;border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:46px}
+input[type=range]{padding:0;min-height:36px;accent-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+canvas.work{width:100%;display:block;border-radius:12px;background:#000;touch-action:none}
+.stat{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:15px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)} th{color:var(--muted);font-weight:600}
+.warn{color:var(--warn)} .bad{color:var(--bad)} .ok{color:var(--good)}
+.busy{position:fixed;inset:0;background:#000a;z-index:30;display:none;align-items:center;justify-content:center;font-size:20px;font-weight:700}
+.busy.on{display:flex}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + var(--safe-b));background:var(--accent);color:#fff;font-weight:700;padding:10px 16px;border-radius:12px;z-index:31;display:none;max-width:90vw;text-align:center}
+ol li,ul li{margin:4px 0}
+.legend span{display:inline-block;margin-right:12px;font-size:14px}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+@media print{header,.noprint{display:none!important} body{background:#fff;color:#000} .card{background:#fff;border-color:#999}}
+</style>
+</head>
+<body>
+<header>
+  <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="10" width="52" height="44" rx="5" fill="none" stroke="#ff6b5e" stroke-width="4"/><path d="M16 42 L16 24 Q16 20 20 20 L44 20 Q48 20 48 24 L48 42 Z" fill="#e5322d"/><circle cx="25" cy="31" r="4" fill="#14181f"/><circle cx="39" cy="31" r="4" fill="#14181f"/></svg>
+  <h1>Profile <span>Scan</span></h1>
+  <div class="steps" aria-label="Progress"><b id="st1" class="on">1</b><b id="st2">2</b><b id="st3">3</b></div>
+</header>
+<main>
+
+<!-- STEP 1: PHOTO -->
+<section id="s1" class="active" aria-label="Step 1: photo">
+  <h2>1. Photograph the part</h2>
+  <div class="card">
+    <ol class="small">
+      <li>Lay the part flat on a sheet of <b>plain white paper</b>, at least ¼ inch from every edge.</li>
+      <li>Put the paper on a <b>darker table</b> so its edges stand out.</li>
+      <li>Hold the phone <b>straight above</b>, level with the table, with all four paper corners in view.</li>
+      <li>Use soft, even light such as shade or an overcast day. Avoid hard shadows.</li>
+    </ol>
+  </div>
+  <label for="paper">Reference sheet</label>
+  <select id="paper">
+    <option value="8.5x11">US Letter (8.5 × 11 in)</option>
+    <option value="8.5x14">US Legal (8.5 × 14 in)</option>
+    <option value="11x17">Tabloid (11 × 17 in)</option>
+    <option value="8.2677x11.6929">A4 (210 × 297 mm)</option>
+    <option value="custom">Custom size…</option>
+  </select>
+  <div class="grid2" id="customRow" style="display:none">
+    <div><label for="cw">Short side (in)</label><input id="cw" type="number" step="0.01" inputmode="decimal"></div>
+    <div><label for="ch">Long side (in)</label><input id="ch" type="number" step="0.01" inputmode="decimal"></div>
+  </div>
+  <div style="margin-top:14px">
+    <label class="btn primary big" for="file" style="display:block">📷 Take or choose a photo</label>
+    <input id="file" type="file" accept="image/*" style="position:absolute;left:-9999px">
+  </div>
+  <p class="muted small" id="photoMsg"></p>
+  <div class="card small">
+    <h3 style="margin-top:0">What this does</h3>
+    <p>Profile Scan uses the paper as a ruler. It straightens the photo, finds the part's outline and holes, and turns them into true lines, arcs and circles. It saves a <b>DXF</b> file (a standard CAD drawing format) that SolidWorks opens as a sketch, ready to extrude.</p>
+    <p class="muted">It's for flat parts: brackets, plates, gaskets, templates. Expect about ±0.01 inch on a good photo; check critical dimensions with calipers.</p>
+  </div>
+</section>
+
+<!-- STEP 2: CORNERS -->
+<section id="s2" aria-label="Step 2: check corners">
+  <h2>2. Check the paper corners</h2>
+  <p class="small muted">Drag the red dots onto the four corners of the paper, if they aren't there already. A magnifier appears while you drag.</p>
+  <canvas id="cornerCv" class="work" aria-label="Photo with draggable paper corners"></canvas>
+  <p class="small" id="cornerMsg"></p>
+  <div class="row noprint" style="margin-top:10px">
+    <button id="back1">← New photo</button>
+    <button class="primary" id="goTrace">Trace part →</button>
+  </div>
+</section>
+
+<!-- STEP 3: TRACE + EXPORT -->
+<section id="s3" aria-label="Step 3: trace and export">
+  <h2>3. Check the trace</h2>
+  <canvas id="traceCv" class="work" aria-label="Straightened photo with traced outline"></canvas>
+  <div class="legend small" style="margin-top:6px"><span><i style="background:#1f8bff"></i>Lines</span><span><i style="background:#00c26e"></i>Arcs</span><span><i style="background:#ff8a00"></i>Holes</span>
+    <label style="display:inline-flex;align-items:center;gap:6px;margin:0"><input type="checkbox" id="showPhoto" checked style="width:22px;height:22px;min-height:0"> Photo</label></div>
+  <div class="card">
+    <div class="grid2">
+      <div><div class="muted small">Overall width</div><div class="stat" id="outW">—</div></div>
+      <div><div class="muted small">Overall height</div><div class="stat" id="outH">—</div></div>
+    </div>
+    <div class="small muted" id="outInfo" style="margin-top:6px"></div>
+    <div class="small" id="outWarn"></div>
+  </div>
+  <div class="card" id="holesCard" style="display:none">
+    <h3 style="margin-top:0">Round holes</h3>
+    <table><thead><tr><th>#</th><th>Diameter</th><th>Nearest size</th><th>Center X, Y</th></tr></thead><tbody id="holesBody"></tbody></table>
+    <p class="small muted">Measured from the lower-left corner of the part's overall box.</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Adjust</h3>
+    <label for="sens">Edge sensitivity: <span id="sensV">0</span></label>
+    <input type="range" id="sens" min="-40" max="40" step="2" value="0">
+    <p class="small muted">Slide right if the part outline is missing pieces. Slide left if shadows or marks are being picked up.</p>
+    <label for="smooth">Clean-up of specks and glare: <span id="smoothV">2</span></label>
+    <input type="range" id="smooth" min="0" max="5" step="1" value="2">
+    <label for="snap">Round hole diameters to</label>
+    <select id="snap"><option value="">Don't round</option><option value="thou">Nearest 0.001 in</option><option value="64">Nearest 1/64 in</option><option value="32">Nearest 1/32 in</option><option value="mm">Nearest 0.1 mm</option></select>
+    <div class="grid2">
+      <div><label for="thick">Part thickness (in)</label><input id="thick" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div><label for="camH">Phone height above table (in)</label><input id="camH" type="number" step="1" min="4" inputmode="decimal"></div>
+    </div>
+    <p class="small muted">Thick parts look slightly bigger to the camera than they really are. Enter both numbers and the app corrects for it.</p>
+    <label for="known">Scale check: overall width measured with calipers (in, optional)</label>
+    <input id="known" type="number" step="0.001" inputmode="decimal" placeholder="e.g. 4.000">
+    <div class="row noprint" style="margin-top:12px"><button id="reTrace">Re-trace</button><button id="back2">← Corners</button></div>
+  </div>
+  <div class="card noprint">
+    <h3 style="margin-top:0">Save for SolidWorks</h3>
+    <label for="pname">Part name</label>
+    <input id="pname" value="scanned-part" autocomplete="off">
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="saveDxf">Save DXF</button>
+      <button id="shareDxf">Share DXF…</button>
+      <button id="saveSvg">Save SVG</button>
+    </div>
+    <p class="small muted">"Share" lets you AirDrop or email it to the computer that runs SolidWorks. "Save" puts it in the Files app.</p>
+    <details class="small"><summary><b>Opening it in SolidWorks</b></summary>
+      <ol>
+        <li><b>File → Open</b>, set the file type to <b>DXF (*.dxf)</b>, and open the file.</li>
+        <li>In the DXF/DWG Import box, choose <b>Import to a new part as 2D sketch</b>, then <b>Next</b>.</li>
+        <li>Set the units to <b>Inches</b> and tap <b>Finish</b>.</li>
+        <li>Select the sketch and use <b>Extruded Boss/Base</b> with the part's thickness.</li>
+        <li>If the extrude complains, <b>Tools → Sketch Tools → Check Sketch for Feature</b> points to any gap.</li>
+      </ol>
+      <p class="muted">The outline is drawn as connected lines, tangent arcs and circles, with the part's lower-left corner at the origin. Add dimensions and relations in SolidWorks as you would for any sketch.</p>
+    </details>
+  </div>
+</section>
+</main>
+<div class="busy" id="busy" role="status" aria-live="polite">Working…</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="scan-core.js"></script>
+<script>
+(function(){
+'use strict';
+var SC = window.ScanCore, $ = function(i){ return document.getElementById(i); };
+var KEY='profileScan.v1', S={ paper:'8.5x11', cw:'', ch:'', thick:0, camH:14, snap:'', sens:0, smooth:2, pname:'scanned-part' };
+try{ Object.assign(S, JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function toast(m){ var t=$('toast'); t.textContent=m; t.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(function(){ t.style.display='none'; },2800); }
+function busy(on,msg){ $('busy').textContent=msg||'Working…'; $('busy').classList.toggle('on',!!on); }
+function later(fn){ setTimeout(fn, 40); }
+function step(n){ ['s1','s2','s3'].forEach(function(id,i){ $(id).classList.toggle('active', i===n-1); $('st'+(i+1)).classList.toggle('on', i<n); }); window.scrollTo(0,0); }
+
+/* settings fields */
+$('paper').value=S.paper; $('cw').value=S.cw; $('ch').value=S.ch; $('thick').value=S.thick; $('camH').value=S.camH; $('snap').value=S.snap;
+$('sens').value=S.sens; $('smooth').value=S.smooth; $('sensV').textContent=S.sens; $('smoothV').textContent=S.smooth; $('pname').value=S.pname;
+$('customRow').style.display = S.paper==='custom' ? '' : 'none';
+$('paper').addEventListener('change', function(){ S.paper=this.value; $('customRow').style.display = S.paper==='custom'?'':'none'; save(); });
+['cw','ch','thick','camH','snap','pname'].forEach(function(id){ $(id).addEventListener('change', function(){ S[id]=this.value; save(); }); });
+$('sens').addEventListener('input', function(){ $('sensV').textContent=this.value; });
+$('smooth').addEventListener('input', function(){ $('smoothV').textContent=this.value; });
+['sens','smooth'].forEach(function(id){ $(id).addEventListener('change', function(){ S[id]=+this.value; save(); runTrace(); }); });
+['snap','thick','camH','known'].forEach(function(id){ $(id).addEventListener('change', function(){ if (cur.rect) runTrace(true); }); });
+function paperSize(){
+  if (S.paper==='custom'){ var a=parseFloat(S.cw), b=parseFloat(S.ch); if (!(a>0&&b>0)) return null; return [Math.min(a,b), Math.max(a,b)]; }
+  var p=S.paper.split('x').map(Number); return [p[0],p[1]];
+}
+
+/* ---------- step 1: load photo ---------- */
+var cur = { img:null, w:0, h:0, rgba:null, gray:null, corners:null, rect:null, prof:null, seg:null };
+$('file').addEventListener('change', function(){
+  var f=this.files && this.files[0]; if (!f) return;
+  if (!paperSize()){ toast('Enter the custom sheet size first'); this.value=''; return; }
+  busy(true,'Loading photo…');
+  var url=URL.createObjectURL(f), im=new Image();
+  im.onload=function(){ later(function(){
+    var MAX=3000, sc=Math.min(1, MAX/Math.max(im.naturalWidth, im.naturalHeight));
+    var w=Math.round(im.naturalWidth*sc), h=Math.round(im.naturalHeight*sc), cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    var cx=cv.getContext('2d'); cx.drawImage(im,0,0,w,h); URL.revokeObjectURL(url);
+    cur.img=cv; cur.w=w; cur.h=h; cur.rgba=cx.getImageData(0,0,w,h).data; cur.gray=SC.grayFromRGBA(cur.rgba,w,h);
+    busy(true,'Finding the paper…');
+    later(function(){
+      var det=null; try{ det=SC.detectPaper(cur.gray); }catch(e){}
+      if (det){ cur.corners=det.corners; $('cornerMsg').innerHTML = det.touchesEdge ? '<span class="warn">A paper corner seems to be at the photo\'s edge. All four corners must be in the photo.</span>' : '<span class="ok">Paper found.</span> Check that each red dot sits exactly on a corner.'; }
+      else { cur.corners=[[w*.2,h*.2],[w*.8,h*.2],[w*.8,h*.8],[w*.2,h*.8]]; $('cornerMsg').innerHTML='<span class="warn">Couldn\'t find the paper automatically.</span> Drag the four dots onto its corners.'; }
+      busy(false); step(2); drawCorners();
+    });
+  }); };
+  im.onerror=function(){ busy(false); toast('Could not open that photo'); };
+  im.src=url; this.value='';
+});
+
+/* ---------- step 2: corner editing ---------- */
+var ccv=$('cornerCv'), drag=-1, dragPt=null;
+function cvScale(){ return ccv.width / cur.w; }
+function drawCorners(){
+  var W=ccv.clientWidth||360, dpr=window.devicePixelRatio||1, H=W*cur.h/cur.w;
+  ccv.style.height=H+'px'; ccv.width=Math.round(W*dpr); ccv.height=Math.round(H*dpr);
+  var c=ccv.getContext('2d'), s=ccv.width/cur.w; c.drawImage(cur.img,0,0,ccv.width,ccv.height);
+  var q=cur.corners; c.lineWidth=2*dpr; c.strokeStyle='#ff3b30'; c.fillStyle='rgba(255,59,48,.12)';
+  c.beginPath(); q.forEach(function(p,i){ i?c.lineTo(p[0]*s,p[1]*s):c.moveTo(p[0]*s,p[1]*s); }); c.closePath(); c.fill(); c.stroke();
+  q.forEach(function(p,i){ c.beginPath(); c.arc(p[0]*s,p[1]*s,(i===drag?14:11)*dpr,0,7); c.fillStyle='rgba(255,59,48,.85)'; c.fill(); c.lineWidth=2*dpr; c.strokeStyle='#fff'; c.stroke(); });
+  if (drag>=0){ // magnifier
+    var p=q[drag], R=70*dpr, Z=4, mx = p[0]*s < ccv.width/2 ? ccv.width-R-10*dpr : R+10*dpr, my=R+10*dpr;
+    c.save(); c.beginPath(); c.arc(mx,my,R,0,7); c.clip();
+    c.fillStyle='#000'; c.fillRect(mx-R,my-R,2*R,2*R);
+    var src=R/(Z*s); c.drawImage(cur.img, p[0]-src, p[1]-src, 2*src, 2*src, mx-R, my-R, 2*R, 2*R);
+    c.restore(); c.strokeStyle='#fff'; c.lineWidth=3*dpr; c.beginPath(); c.arc(mx,my,R,0,7); c.stroke();
+    c.strokeStyle='#ff3b30'; c.lineWidth=1.5*dpr; c.beginPath(); c.moveTo(mx-R,my); c.lineTo(mx+R,my); c.moveTo(mx,my-R); c.lineTo(mx,my+R); c.stroke();
+  }
+}
+function evPt(e){ var r=ccv.getBoundingClientRect(), s=cur.w/r.width; return [(e.clientX-r.left)*s, (e.clientY-r.top)*s]; }
+ccv.addEventListener('pointerdown', function(e){
+  var p=evPt(e), r=ccv.getBoundingClientRect(), lim=44*cur.w/r.width, best=-1, bd=1e9;
+  cur.corners.forEach(function(q,i){ var d=Math.hypot(q[0]-p[0],q[1]-p[1]); if (d<bd){ bd=d; best=i; } });
+  if (bd<lim){ drag=best; dragPt={ off:[cur.corners[best][0]-p[0], cur.corners[best][1]-p[1]] }; ccv.setPointerCapture(e.pointerId); drawCorners(); e.preventDefault(); }
+});
+ccv.addEventListener('pointermove', function(e){ if (drag<0) return; var p=evPt(e);
+  cur.corners[drag]=[Math.max(0,Math.min(cur.w-1,p[0]+dragPt.off[0])), Math.max(0,Math.min(cur.h-1,p[1]+dragPt.off[1]))]; drawCorners(); e.preventDefault(); });
+function endDrag(){ if (drag>=0){ drag=-1; cur.corners=SC.orderCorners(cur.corners); drawCorners(); } }
+ccv.addEventListener('pointerup', endDrag); ccv.addEventListener('pointercancel', endDrag);
+window.addEventListener('resize', function(){ if ($('s2').classList.contains('active')) drawCorners(); if ($('s3').classList.contains('active')) drawTrace(); });
+$('back1').addEventListener('click', function(){ step(1); });
+$('goTrace').addEventListener('click', function(){ busy(true,'Straightening photo…'); later(function(){ makeRect(); runTrace(); }); });
+
+function makeRect(){
+  var q=SC.orderCorners(cur.corners), ps=paperSize();
+  var top=Math.hypot(q[1][0]-q[0][0],q[1][1]-q[0][1])+Math.hypot(q[2][0]-q[3][0],q[2][1]-q[3][1]);
+  var side=Math.hypot(q[3][0]-q[0][0],q[3][1]-q[0][1])+Math.hypot(q[2][0]-q[1][0],q[2][1]-q[1][1]);
+  var wIn = top>side ? ps[1] : ps[0], hIn = top>side ? ps[0] : ps[1];
+  var srcPPI = Math.max(top,side)/2/ps[1];
+  var ppi = Math.max(60, Math.min(150, Math.round(srcPPI)));
+  cur.rect=SC.rectify(cur.rgba, cur.w, cur.h, q, wIn, hIn, ppi); cur.rect.ppi=ppi; cur.rect.srcPPI=srcPPI; cur.rect.wIn=wIn; cur.rect.hIn=hIn;
+  cur.rect.nadir=SC.applyH(cur.rect.toRect, cur.w/2, cur.h/2);
+  var rc=document.createElement('canvas'); rc.width=cur.rect.w; rc.height=cur.rect.h; rc.getContext('2d').putImageData(new ImageData(cur.rect.rgba, cur.rect.w, cur.rect.h),0,0); cur.rect.canvas=rc;
+}
+
+/* ---------- step 3: trace ---------- */
+function runTrace(fitOnly){
+  if (!cur.rect) return;
+  busy(true,'Tracing outline…');
+  later(function(){
+    try{
+      var r=cur.rect;
+      if (!fitOnly || !cur.seg){ cur.seg=SC.segment(r.gray, { ppi:r.ppi, sensitivity:+$('sens').value, smoothPx:+$('smooth').value }); cur.loops = cur.seg.mask ? SC.traceContours(cur.seg.mask, r.w, r.h) : []; }
+      if (!cur.seg.mask || !cur.loops.length){ cur.prof=null; showResult(); busy(false); step(3); drawTrace(); return; }
+      var opts={ ppi:r.ppi, rectH:r.h, snap:$('snap').value||null, thicknessIn:parseFloat($('thick').value)||0, cameraHeightIn:parseFloat($('camH').value)||14, nadir:r.nadir, scale:1 };
+      var prof=SC.buildProfile(cur.loops, opts), known=parseFloat($('known').value);
+      if (known>0 && prof.width>0){ opts.scale = known/prof.width; prof=SC.buildProfile(cur.loops, opts); }
+      prof.scale=opts.scale; cur.prof=prof;
+    }catch(e){ cur.prof=null; toast('Trace failed: '+e.message); }
+    showResult(); busy(false); step(3); drawTrace();
+  });
+}
+$('reTrace').addEventListener('click', function(){ runTrace(); });
+$('back2').addEventListener('click', function(){ step(2); drawCorners(); });
+$('showPhoto').addEventListener('change', drawTrace);
+
+function fracName(d){
+  var best=null; [64,32,16,8,4,2].forEach(function(den){ var n=Math.round(d*den); if (n>0 && Math.abs(n/den-d)<0.004){ var g=gcd(n,den); best=(n/g)+'/'+(den/g)+'″'; } });
+  var whole = best && best.indexOf('/')>0 ? best : null;
+  var mm=(d*25.4).toFixed(1)+' mm';
+  return (whole? whole+' · ' : '') + mm;
+}
+function gcd(a,b){ return b?gcd(b,a%b):a; }
+function fmtIn(x){ return x.toFixed(3)+'″'; }
+function showResult(){
+  var p=cur.prof, r=cur.rect;
+  if (!p){ $('outW').textContent='—'; $('outH').textContent='—'; $('outInfo').textContent='';
+    $('outWarn').innerHTML='<span class="bad">No part found on the paper.</span> Try sliding Edge sensitivity to the right, or retake the photo with more contrast.'; $('holesCard').style.display='none'; return; }
+  $('outW').textContent=fmtIn(p.width); $('outH').textContent=fmtIn(p.height);
+  var acc = 1.5/r.srcPPI;
+  $('outInfo').textContent = p.counts.lines+' lines · '+p.counts.arcs+' arcs · '+p.counts.circles+' circles · photo detail '+Math.round(r.srcPPI)+' pixels per inch, so expect about ±'+Math.max(0.005,acc).toFixed(3)+' in'+(p.scale!==1?' · scale corrected ×'+p.scale.toFixed(4):'');
+  var w=[];
+  if (cur.seg.touchesMargin) w.push('The part touches the edge of the paper. Keep it at least ¼ inch inside so the outline is complete.');
+  if (r.srcPPI<90) w.push('The paper is small in the photo. Move closer, or use 2× zoom from farther back, for better accuracy.');
+  if (p.counts.lines+p.counts.arcs>60) w.push('The outline has a lot of pieces. Glare or shadows may be confusing it; try the Clean-up slider or a softer light.');
+  $('outWarn').innerHTML = w.map(function(s){ return '<div class="warn">⚠ '+s+'</div>'; }).join('');
+  var holes=[]; p.holes.forEach(function(h){ h.forEach(function(e){ if (e.type==='circle') holes.push(e); }); });
+  holes.sort(function(a,b){ return a.cy-b.cy || a.cx-b.cx; });
+  $('holesCard').style.display = holes.length?'':'none';
+  $('holesBody').innerHTML = holes.map(function(e,i){ var d=2*e.r; return '<tr><td>'+(i+1)+'</td><td>Ø '+d.toFixed(3)+'″</td><td>'+fracName(d)+'</td><td>'+e.cx.toFixed(3)+', '+e.cy.toFixed(3)+'</td></tr>'; }).join('');
+}
+function sampleEnt(e){
+  if (e.type==='line') return [e.a,e.b];
+  var pts=[], n=48, a0, sw;
+  if (e.type==='circle'){ for (var i=0;i<=n;i++){ var t=i/n*2*Math.PI; pts.push([e.cx+e.r*Math.cos(t), e.cy+e.r*Math.sin(t)]); } return pts; }
+  a0=Math.atan2(e.p0[1]-e.cy,e.p0[0]-e.cx); var a2=Math.atan2(e.p2[1]-e.cy,e.p2[0]-e.cx); sw=a2-a0;
+  if (e.ccw && sw<0) sw+=2*Math.PI; if (!e.ccw && sw>0) sw-=2*Math.PI;
+  for (i=0;i<=n;i++){ var tt=a0+sw*i/n; pts.push([e.cx+e.r*Math.cos(tt), e.cy+e.r*Math.sin(tt)]); }
+  return pts;
+}
+function drawTrace(){
+  var r=cur.rect; if (!r) return; var cv=$('traceCv'), p=cur.prof;
+  // view window (rectified px): zoom to the part with a margin, or the whole sheet if nothing traced
+  var vx=0, vy=0, vw=r.w, vh=r.h;
+  if (p){ var a=p.toPx(0,0), b=p.toPx(p.width,p.height), m=0.6*r.ppi;
+    vx=Math.max(0,Math.min(a[0],b[0])-m); vy=Math.max(0,Math.min(a[1],b[1])-m); vw=Math.min(r.w,Math.max(a[0],b[0])+m)-vx; vh=Math.min(r.h,Math.max(a[1],b[1])+m)-vy; }
+  var W=cv.clientWidth||360, dpr=window.devicePixelRatio||1, H=Math.min(W*vh/vw, W*1.3); cv.style.height=H+'px'; cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  var c=cv.getContext('2d'), s=Math.min(cv.width/vw, cv.height/vh), ox=(cv.width-vw*s)/2 - vx*s, oy=(cv.height-vh*s)/2 - vy*s;
+  c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
+  if ($('showPhoto').checked){ c.drawImage(r.canvas, ox, oy, r.w*s, r.h*s); c.fillStyle='rgba(255,255,255,.25)'; c.fillRect(0,0,cv.width,cv.height); }
+  c.setTransform(1,0,0,1,ox,oy);
+  if (!p){ c.setTransform(1,0,0,1,0,0); return; }
+  function draw(list, col, wdt){ list.forEach(function(e){ var pts=sampleEnt(e).map(function(q){ var v=p.toPx(q[0],q[1]); return [v[0]*s, v[1]*s]; });
+    c.strokeStyle = e.type==='arc' ? '#00c26e' : col; c.lineWidth=wdt*dpr; c.beginPath(); pts.forEach(function(q,i){ i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]); }); c.stroke(); }); }
+  draw(p.outline, '#1f8bff', 3);
+  p.holes.forEach(function(h){ draw(h, h.length===1 && h[0].type==='circle' ? '#ff8a00' : '#1f8bff', 3); });
+  // joints
+  c.fillStyle='#111'; p.entities.forEach(function(e){ if (e.type==='circle') return; [e.type==='line'?e.a:e.p0].forEach(function(q){ var v=p.toPx(q[0],q[1]); c.beginPath(); c.arc(v[0]*s,v[1]*s,2.5*dpr,0,7); c.fill(); }); });
+  // overall box dims
+  var o=p.toPx(0,0), x1=p.toPx(p.width,p.height);
+  c.setLineDash([6*dpr,4*dpr]); c.strokeStyle='rgba(229,50,45,.8)'; c.lineWidth=1.5*dpr; c.strokeRect(o[0]*s, x1[1]*s, (x1[0]-o[0])*s, (o[1]-x1[1])*s); c.setLineDash([]);
+  c.font='bold '+(13*dpr)+'px -apple-system,sans-serif'; c.fillStyle='#c0201b';
+  c.fillText(p.width.toFixed(3)+'″', (o[0]+x1[0])/2*s-20*dpr, o[1]*s+16*dpr);
+  c.save(); c.translate(x1[0]*s+16*dpr, (o[1]+x1[1])/2*s+20*dpr); c.rotate(-Math.PI/2); c.fillText(p.height.toFixed(3)+'″',0,0); c.restore();
+  c.setTransform(1,0,0,1,0,0);
+}
+
+/* ---------- export ---------- */
+function fname(ext){ var n=($('pname').value||'scanned-part').trim().replace(/[^\w\- ]+/g,'').replace(/\s+/g,'-')||'scanned-part'; return n+'.'+ext; }
+function download(text, name, type){
+  var blob=new Blob([text],{type:type}), url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 4000);
+}
+$('saveDxf').addEventListener('click', function(){ if (!cur.prof) return toast('Nothing traced yet'); download(SC.toDXF(cur.prof.entities), fname('dxf'), 'application/dxf'); });
+$('saveSvg').addEventListener('click', function(){ if (!cur.prof) return toast('Nothing traced yet'); download(SC.toSVG(cur.prof), fname('svg'), 'image/svg+xml'); });
+$('shareDxf').addEventListener('click', async function(){
+  if (!cur.prof) return toast('Nothing traced yet');
+  var file=new File([SC.toDXF(cur.prof.entities)], fname('dxf'), {type:'application/octet-stream'});
+  try{
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({ files:[file], title:fname('dxf') }); }
+    else { download(SC.toDXF(cur.prof.entities), fname('dxf'), 'application/dxf'); toast('Sharing not available here — saved instead'); }
+  }catch(e){ if (e.name!=='AbortError') toast('Share failed: '+e.message); }
+});
+
+if ('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(function(){});
+window.__scan = cur;
+})();
+</script>
+</body>
+</html>
